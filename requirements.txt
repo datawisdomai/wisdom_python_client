@@ -1,0 +1,4 @@
+requests==2.32.0
+python-dotenv==1.0.1
+descope==1.7.2
+gql==3.5.0
