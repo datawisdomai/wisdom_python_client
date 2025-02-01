@@ -22,7 +22,6 @@ from descope import (
 load_dotenv()
 
 # Get environment variables
-WISDOM_API_URL = os.getenv("wisdom_api_url")
 WISDOM_WS_URL = os.getenv("wisdom_ws_url")
 WISDOM_AUTH_KEY = os.getenv("wisdom_auth_key")
 WISDOM_PROJECT_ID = os.getenv("wisdom_project_id")
@@ -31,32 +30,91 @@ if not WISDOM_PROJECT_ID:
     raise ValueError("wisdom_project_id is not set")
 if not WISDOM_AUTH_KEY:
     raise ValueError("wisdom_auth_key is not set")
-if not WISDOM_API_URL:
-    raise ValueError("wisdom_api_url is not set")
 
 descope_client = DescopeClient(project_id=WISDOM_PROJECT_ID)
 
 # Define the subscription query
 CHAT_SUBSCRIPTION = gql(
     """
-    subscription Chat($auth: SubscriptionAuthInput!, $conversationId: String, $createHiddenConversation: Boolean, $domainId: String!, $query: StructuredQuery!, $skipCompose: Boolean, $idempotencyKey: String!, $toolSelection: ToolSelection, $manualModelSelection: LLMModel) {
+    subscription Chat(
+        $auth: SubscriptionAuthInput!, 
+        $conversationId: String, 
+        $domainId: String!, 
+        $query: StructuredQuery!, 
+        $idempotencyKey: String!, 
+        $toolSelection: ToolSelection
+    ) {
         chat(
             auth: $auth
             conversationId: $conversationId
-            createHiddenConversation: $createHiddenConversation
             domainId: $domainId
             query: $query
-            skipCompose: $skipCompose
             idempotencyKey: $idempotencyKey
             toolSelection: $toolSelection
-            manualModelSelection: $manualModelSelection
         ) {
-            text
-            done
-            error
+            messageId
+            bodyDiff {
+                ops {
+                    attributes {
+                        error
+                        progress
+                        generatedCode {
+                            codeStr
+                            dialect
+                        }
+                        sqlDialect
+                        updatedAt
+                    }
+                    insert {
+                        text
+                        visualization {
+                            id
+                            title
+                            type
+                            dimensions
+                            measures
+                            measureGroups {
+                                label
+                                measures
+                                format
+                            }
+                            data {
+                                value
+                                hyperlink
+                            }
+                            columns {
+                                name
+                                description
+                                alias
+                                uniqueRef
+                                tableName
+                            }
+                            columnOrder
+                            columnDisplayFormats
+                            hasMore
+                            pagination {
+                                pageIndex
+                                pageSize
+                            }
+                            code {
+                                codeStr
+                                dialect
+                            }
+                        }
+                    }
+                    retain
+                    delete
+                }
+            }
+            inProgress
+            conversationId
+            diffIndex
+            createdAt
+            updatedAt
+            dataRefreshedAt
         }
     }
-"""
+    """
 )
 
 
@@ -97,7 +155,13 @@ async def ask_question(question: str) -> AsyncGenerator[str, None]:
         variables = {
             "auth": {"token": auth_token},
             "domainId": WISDOM_DOMAIN_ID,
-            "query": {"text": question},
+            "query": {
+                "pieces": [
+                    {
+                        "text": question,
+                    }
+                ]
+            },
             "idempotencyKey": str(
                 hash(question)
             ),  # Simple way to generate an idempotency key
