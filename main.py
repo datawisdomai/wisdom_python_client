@@ -4,6 +4,7 @@ import asyncio
 from gql import gql, Client
 from gql.transport.websockets import WebsocketsTransport
 import pandas as pd
+import sqlparse
 from descope import (
     DescopeClient,
 )
@@ -172,7 +173,11 @@ async def ask_question(question: str) -> str:
 
             sql = viz.get("code", {}).get("codeStr")
             if sql:
-                response_text += "\n\n" + sql + "\n\n"
+                # Format the SQL code with proper indentation and capitalization
+                formatted_sql = sqlparse.format(
+                    sql, reindent=True, keyword_case="upper"
+                )
+                response_text += "\n\n" + formatted_sql + "\n\n"
 
     return response_text
 
