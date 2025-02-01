@@ -17,7 +17,12 @@ load_dotenv()
 WISDOM_WS_URL = os.getenv("wisdom_ws_url")
 WISDOM_AUTH_KEY = os.getenv("wisdom_auth_key")
 WISDOM_PROJECT_ID = os.getenv("wisdom_project_id")
+DOMAIN_ID = os.getenv("domain_id")
 
+if not WISDOM_WS_URL:
+    raise ValueError("wisdom_ws_url is not set")
+if not DOMAIN_ID:
+    raise ValueError("domain_id is not set")
 if not WISDOM_PROJECT_ID:
     raise ValueError("wisdom_project_id is not set")
 if not WISDOM_AUTH_KEY:
@@ -106,9 +111,6 @@ def get_auth_token():
     return auth_info["sessionToken"]["jwt"]
 
 
-WISDOM_DOMAIN_ID = "ET_DOMAIN_9118ac9c9f424498831d1870534bd6f1"
-
-
 async def ask_question(question: str) -> str:
     """
     Ask a question to the Wisdom API and yield streaming responses.
@@ -129,7 +131,7 @@ async def ask_question(question: str) -> str:
 
     subscription_variables = {
         "auth": {"token": auth_token},
-        "domainId": WISDOM_DOMAIN_ID,
+        "domainId": DOMAIN_ID,
         "query": {
             "pieces": [
                 {
@@ -187,7 +189,7 @@ async def main():
     """Main function to run the Wisdom API."""
     # List of questions to ask
     questions = [
-        "List all acounts",
+        "What is the expected revenue from each opportunity?",
         "List all opportunities",
     ]
 
