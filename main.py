@@ -10,6 +10,7 @@ from descope import (
 )
 
 # Load environment variables from .env file
+# Make sure to write the env variables in the .env file
 load_dotenv()
 
 # Get environment variables
