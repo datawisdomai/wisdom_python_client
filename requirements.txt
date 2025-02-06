@@ -4,4 +4,4 @@ descope==1.7.2
 gql==3.5.0
 sqlparse==0.5.0
 pandas==2.0.3
-
+websockets==14.2
