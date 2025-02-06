@@ -111,7 +111,9 @@ def get_auth_token():
     return auth_info["sessionToken"]["jwt"]
 
 
-async def ask_question(question: str) -> str:
+async def ask_question(
+    question: str, conversation_id: str | None = None
+) -> tuple[str, str]:
     """
     Ask a question to the Wisdom API and yield streaming responses.
 
@@ -142,6 +144,9 @@ async def ask_question(question: str) -> str:
         "idempotencyKey": str(hash(question)),
         "toolSelection": {"optInToolNames": ["Tabular Data"]},
     }
+    if conversation_id:
+        subscription_variables["conversationId"] = conversation_id
+
     # Set up the WebSocket transport with authentication
     transport = WebsocketsTransport(
         url=WISDOM_WS_URL,
@@ -182,22 +187,32 @@ async def ask_question(question: str) -> str:
                 )
                 response_text += "\n\n" + formatted_sql + "\n\n"
 
-    return response_text
+    return response_text, response_obj["conversationId"]
 
 
 async def main():
     """Main function to run the Wisdom API."""
-    # List of questions to ask
-    questions = [
-        "What is the expected revenue from each opportunity?",
-        "List all opportunities",
+    # List of sessions, each session is a list of questions to ask
+    # Questions in a given session are asked in the same context (conversation)
+    sessions = [
+        [
+            "What is the expected revenue from each opportunity?",
+            "Total expected across all?",
+        ],
+        ["List all opportunities", "How many in the last 30 days?"],
     ]
 
-    for idx, question in enumerate(questions):
-        print(f"\nQuestion {idx + 1}/{len(questions)}: {question}")
-        print("Answer: ", end="", flush=True)
-        response = await ask_question(question)
-        print(response)
+    for session_idx, session in enumerate(sessions):
+        print(f"\nSession {session_idx + 1}/{len(sessions)}:")
+        session_conversation_id = None
+        for question_idx, question in enumerate(session):
+            print(f"\nQuestion {question_idx + 1}/{len(session)}: {question}")
+            print("Answer: ", end="", flush=True)
+            response, conversation_id = await ask_question(
+                question, session_conversation_id
+            )
+            print(response)
+            session_conversation_id = conversation_id
 
 
 if __name__ == "__main__":
