@@ -161,8 +161,8 @@ subscription Chat(
       "ops": [
         {
           "insert": {
-            "text": "L
-""          }
+            "text": "Let me fetch a table for expected revenue for each opportunity."
+          }
         },
         {
           "insert": {
