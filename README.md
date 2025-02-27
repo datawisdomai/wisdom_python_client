@@ -208,6 +208,7 @@ subscription Chat(
 | `400`      | Bad Request           | Malformed request payload               |
 | `500`      | Internal Server Error | Unexpected API failure                  |
 
+
 ## Contact & Support
 
 For any queries or support, contact our API team at [**support@askwisdom.ai**](mailto\:support@askwisdom.ai).
